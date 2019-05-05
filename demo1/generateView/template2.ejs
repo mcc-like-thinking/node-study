@@ -1,0 +1,25 @@
+<template>
+  <div class="app-container">
+    <el-form class="filter-form" :inline="true" :model="query" ref="queryForm">
+      <% for(var i=0; i<user.length; i++) {%>
+      <el-form-item label="名称" prop="title">
+        <el-input v-model="<%= user[i].name %>" placeholder="<%= user[i].name %>" clearable></el-input>
+      </el-form-item>
+      <% } %>
+    </el-form>
+  </div>
+</template>
+
+<script>
+  export default {
+    name: "form",
+    data() {
+      return {
+        query: {
+          pageNum: 1,
+          pageSize: 10
+        }
+      }
+    }
+  }
+</script>
