@@ -1,0 +1,137 @@
+<template>
+  <div class="app-container">
+    <sticky class-name="sub-navbar draft" :stickyTop="60">
+      <div class="sticky-cont clearfix">
+        <div class="sticky-cont--l fl">
+          <el-button type="info" plain @click="goback"><i class="el-icon-back"></i></el-button>
+        </div>
+        <div class="sticky-cont--r fr">
+          <el-button type="info" @click="goback">取 消</el-button>
+          <el-button :loading="loading" type="primary" @click="onSubmit">
+            <span v-if="isEdit===false">立即创建</span>
+            <span v-else>立即更新</span>
+          </el-button>
+        </div>
+      </div>
+    </sticky>
+
+    <div class="container-cont" v-loading="detailLoading">
+      <el-card shadow="never" style="margin-top: 20px;">
+        <div slot="header">基本信息</div>
+        <el-form class="form-flex row2" :model="form" ref="form" label-position="right" label-width="120px">
+          <% for(var i=0; i<column.length; i++) {%>
+          <el-form-item label="<%= column[i] %>" prop="<%= column[i] %>">
+            <el-input v-model="form.<%= column[i] %>" placeholder="请输入<%= column[i] %>" clearable></el-input>
+          </el-form-item>
+          <% } %>
+        </el-form>
+      </el-card>
+    </div>
+  </div>
+</template>
+
+<script>
+  import Sticky from '@/components/Sticky'
+  import * as $http from './api'
+  export default {
+    name: '<%= modName %>Manage',
+    components: {
+      Sticky
+    },
+    props: {
+      isEdit: {
+        type: Boolean,
+        default: false
+      }
+    },
+    data() {
+      return {
+        loading: false,
+        detailLoading: false,
+        query: {
+          id: ''
+        },
+        form: {
+          id: '',
+          <% for(var i=0; i<column.length; i++) {%>
+          <%= column[i] %>: '',
+          <% } %>
+        }
+      }
+    },
+    created() {
+      this.init()
+    },
+    methods: {
+      // 返回
+      goback() {
+        // 关闭当前选项卡
+        this.$router.go(-1)
+        this.$store.dispatch('delVisitedView', this.$route)
+      },
+
+      // 表单数据初始化
+      init() {
+        if (this.isEdit) {
+          this.form.id = this.query.id = this.$route.params.id
+
+          this.detailLoading = true
+          $http.detail(this.query.id).then(res => {
+            if (res.data.code === 10001) {
+              for (const [key, value] of Object.entries(res.data.data)) {
+                if (this.form.hasOwnProperty(key)) {
+                  this.form[key] = value
+                }
+              }
+            } else {
+              this.$message.error(res.data.message || '获取信息时，发生错误')
+            }
+            this.detailLoading = false
+          }).catch(err => {
+            this.detailLoading = false
+          })
+        } else {}
+      },
+
+      // 表单提交
+      onSubmit() {
+        this.$refs.form.validate((valid) => {
+          if (valid) {
+            this.loading = true
+            if (this.isEdit) {
+              $http.edit(this.form).then(res => {
+                if (res.data.code === 10001) {
+                  this.$message({
+                    message: res.data.message || '编辑成功',
+                    type: 'success'
+                  })
+                  this.goback()
+                } else {
+                  this.$message.error(res.data.message || '编辑失败')
+                }
+                this.loading = false
+              }).catch(err => {
+                this.loading = false
+              })
+            } else {
+              $http.add(this.form).then(res => {
+                if (res.data.code === 10001) {
+                  this.$message({
+                    message: res.data.message || '添加成功',
+                    type: 'success'
+                  })
+                  this.goback()
+                } else {
+                  this.$message.error(res.data.message || '添加失败')
+                }
+                this.loading = false
+              }).catch(err => {
+                this.loading = false
+              })
+            }
+          }
+        })
+      }
+    }
+  }
+</script>

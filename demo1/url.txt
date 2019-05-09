@@ -1,0 +1,1 @@
+list:/user/list add:/user/add edit:/user/edit detail:/user/detail delete:/user/delete

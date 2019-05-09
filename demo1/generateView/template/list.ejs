@@ -1,0 +1,164 @@
+<template>
+  <div class="app-container">
+    <el-form class="filter-form" :inline="true" :model="query" ref="queryForm">
+      <% for(var i=0; i<column.length; i++) {%>
+      <el-form-item label="<%= column[i] %>" prop="<%= column[i] %>">
+        <el-input v-model="query.<%= column[i] %>" placeholder="请输入<%= column[i] %>" clearable></el-input>
+      </el-form-item>
+      <% } %>
+      <el-form-item>
+        <el-button type="primary" icon="el-icon-search" @click="handleFilter">查询</el-button>
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" icon="el-icon-refresh" @click="handleResetForm('queryForm')">重置</el-button>
+      </el-form-item>
+    </el-form>
+    <div class="button-group">
+      <el-button type="text" @click="handleCreate" :disabled="!<%= add %>">添加</el-button>
+      <span class="divider">|</span>
+      <el-button class="btn-delete" type="text" @click="handleDel" :disabled="!<%= del %> ? true : !multipleSelected">删除</el-button>
+    </div>
+    <el-table v-loading="tableData.loading" border :data="tableData.list" @selection-change="selectTableData">
+      <el-table-column type="selection" prop="identifier" align="center" width="40"></el-table-column>
+      <% for(var i=0; i<column.length; i++) {%>
+      <el-table-column prop="<%= column[i] %>" label="<%= column[i] %>" align="center"></el-table-column>
+      <% } %>
+      <el-table-column fixed="right" label="操作" align="center" width="120">
+        <template slot-scope="scope">
+          <el-button class="btn-edit" type="text" @click="handleUpdate(scope.row)" :disabled="!<%= edit %>">编辑</el-button>
+          <el-button class="btn-detail" type="text" @click="handleView(scope.row)" :disabled="!<%= detail %>">详情</el-button>
+        </template>
+      </el-table-column>
+    </el-table>
+    <div class="pagination-box clearfix">
+      <el-pagination
+        class="fr"
+        @size-change="handleSizeChange"
+        @current-change="pageChangeClick"
+        :current-page="query.page"
+        :total="tableData.total"
+        :page-size="query.rows"
+        layout="total, prev, pager, next, sizes, jumper">
+      </el-pagination>
+    </div>
+  </div>
+</template>
+
+<script>
+  import * as $http from './api'
+  export default {
+    name: '<%= modName %>List',
+    data() {
+      return {
+        query: {
+          <% for(var i=0; i<column.length; i++) {%>
+          <%= column[i] %>: '',
+          <% } %>
+          page: 1,
+          rows: 10
+        },
+        tableData: {
+          loading: false,
+          total: 0,
+          list: [],
+          selectData: []
+        }
+      }
+    },
+    computed: {
+      multipleSelected: function() {
+        return this.tableData.selectData.length
+      }
+    },
+    created() {
+      // 获取列表数据
+      this.getTableData()
+    },
+    methods: {
+      // 获取列表数据
+      getTableData() {
+        this.tableData.loading = true
+        $http.fetchList(this.query).then(res => {
+          if (res.status === 200) {
+            this.tableData.list = res.data.rows
+            this.tableData.total = res.data.total
+          } else {
+            this.$message({
+              message: '请求失败，请重试',
+              type: 'warning'
+            })
+          }
+
+          this.tableData.loading = false
+        }).catch(error => {
+          this.tableData.loading = false
+        })
+      },
+      // 查询
+      handleFilter() {
+        this.query.page = 1
+        this.getTableData()
+      },
+      // 重设
+      handleResetForm(formName) {
+        this.$refs[formName].resetFields()
+        this.query.page = 1
+        this.getTableData()
+      },
+
+      // pageSize设置
+      handleSizeChange(pageSize) {
+        this.query.rows = pageSize
+        this.getTableData()
+      },
+      // 点击分页
+      pageChangeClick(page) {
+        this.query.page = page
+        this.getTableData()
+      },
+
+      // 勾选表单数据，并获取id
+      selectTableData(data) {
+        this.tableData.selectData = data
+      },
+      // 删除
+      handleDel() {
+        const ids = this.tableData.selectData.map(item => item.id).join(',')
+        this.$confirm('您确认要删除这条数据吗, 是否继续?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          $http.del(ids).then(res => {
+            if (res.data.code === 10001) {
+              this.$message({
+                message: '删除成功',
+                type: 'success'
+              })
+              this.tableData.selectData = []
+              this.getTableData()
+            } else {
+              this.$message({
+                message: '删除失败，请重试',
+                type: 'warning'
+              })
+            }
+          })
+        })
+      },
+
+      // 新增
+      handleCreate() {
+        this.$router.push({ name: '<%= modName %>Add' })
+      },
+      // 修改
+      handleUpdate(row) {
+        this.$router.push({ name: '<%= modName %>Edit', params: { id: row.id } })
+      },
+      // 查看详情
+      handleView(row) {
+        this.$router.push({ name: '<%= modName %>Detail', params: { id: row.id } })
+      }
+    }
+  }
+</script>

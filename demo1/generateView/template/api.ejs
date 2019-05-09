@@ -1,0 +1,68 @@
+import request from '@/utils/request'
+
+/**
+ * 获取列表
+ */
+export function fetchList(params) {
+	return request({
+		url: '/api<%= fetchUrl %>',
+		method: 'get',
+		params: params
+	})
+}
+
+<% if (addUrl) { %>
+/**
+ * 添加
+ */
+export function add(params) {
+	return request({
+		url: '/api<%= addUrl %>',
+		method: 'post',
+		data: data
+	})
+}
+<% } %>
+
+<% if (editUrl) { %>
+/**
+ * 编辑
+ */
+export function edit(params) {
+	return request({
+		url: '/api<%= editUrl %>',
+		method: 'post',
+		data: params
+	})
+}
+<% } %>
+
+<% if (deleteUrl) { %>
+/**
+ * 删除
+ */
+export function del(params) {
+	return request({
+		url: '/api<%= deleteUrl %>',
+		method: 'post',
+		params: {
+			id: params
+		}
+	})
+}
+<% } %>
+
+<% if (detailUrl) { %>
+/**
+ * 详情
+ */
+export function detail(params) {
+	return request({
+		url: '/api<%= detailUrl %>',
+		method: 'get',
+		params: {
+			id: params
+		}
+	})
+}
+<% } %>
