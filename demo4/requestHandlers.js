@@ -29,6 +29,20 @@ function login(response, request, postData) {
   response.end();
 }
 
+function login2(response, request) {
+  Token = Date.parse(new Date())
+  const resp = {
+    status: 200,
+    data: {
+      Token: Token
+    }
+  }
+
+  response.writeHead(200, {"Content-Type": "text/html;charset=utf-8"});
+  response.write(JSON.stringify(resp));
+  response.end();
+}
+
 // 获取用户列表
 function userList(response, request) {
   const resp = {
@@ -36,9 +50,9 @@ function userList(response, request) {
     data: userData,
     total: userData.length
   }
-  if (request.headers.token != Token) {
-    resp.status = 50008
-  }
+  // if (request.headers.token != Token) {
+  //   resp.status = 50008
+  // }
 
   response.writeHead(200, {"Content-Type": "text/html;charset=utf-8"});
   response.write(JSON.stringify(resp));
@@ -53,9 +67,9 @@ function addUser(response, request, postData) {
   const resp = {
     status: 200
   }
-  if (request.headers.token != Token) {
-    resp.status = 50008
-  }
+  // if (request.headers.token != Token) {
+  //   resp.status = 50008
+  // }
 
   response.writeHead(200, {"Content-Type": "text/html;charset=utf-8"});
   response.write(JSON.stringify(resp));
