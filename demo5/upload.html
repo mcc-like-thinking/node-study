@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>upload</title>
+	<style type="text/css">
+		.visually-hidden {
+		  position: absolute !important;
+		  height: 1px;
+		  width: 1px;
+		  overflow: hidden;
+		  clip: rect(1px, 1px, 1px, 1px);
+		}
+		input.visually-hidden:focus + label {
+		  outline: thin dotted;
+		}
+		input.visually-hidden:focus-within + label {
+		  outline: thin dotted;
+		}
+
+		#dropbox {
+			width: 300px;
+			height: 100px;
+			border: 1px dashed #dedede;
+		}
+		#preview img {
+			width: 100px;
+			height: auto;
+		}
+	</style>
+</head>
+<body>
+	<h3>预览</h3>
+	<div id="preview"></div>
+	<br>
+	<br>
+
+	<input type="file" id="fileElem" multiple accept="*" style="display:none" onchange="handleVideos(this.files)">
+	<button id="fileSelect">上传视频</button>
+	<br>
+	<br>
+
+	<input type="file" id="fileElem2" multiple accept="*" style="display:none" onchange="handleFiles(this.files)">
+	<button id="fileSelect2">上传图片</button>
+	<br>
+	<br>
+
+	<canvas id="my_canvas" width="960" height="1358"></canvas>
+
+	<script type="text/javascript" src="axios.min.js"></script>
+	<script type="text/javascript">
+		axios.defaults.maxContentLength = 999999999;
+
+		const inputElement = document.getElementById('input');
+		const preview = document.getElementById('preview');
+
+		const fileSelect = document.getElementById("fileSelect"),
+			fileElem = document.getElementById("fileElem");
+		fileSelect.addEventListener("click", function (e) {
+			if (fileElem) {
+			    fileElem.click();
+			}
+		}, false);
+
+		const fileSelect2 = document.getElementById("fileSelect2"),
+			fileElem2 = document.getElementById("fileElem2");
+		fileSelect2.addEventListener("click", function (e) {
+			if (fileElem2) {
+			    fileElem2.click();
+			}
+		}, false);
+
+		function handleVideos(files) {
+			const fileList = this.files;
+			console.log('files', files)
+
+			for (var i = 0; i < files.length; i++) {
+			    var file = files[i];
+			    
+			    var reader = new FileReader();
+			    reader.onload = (function(aImg) {
+			    	return function(e) {
+			    		console.log('e', e, e.target.result)
+			    		var canvas = document.getElementById('my_canvas');
+			    		var ctx = canvas.getContext('2d');
+
+			    		var dataView = new DataView(e.target.result);
+			    		console.log('dataView', dataView)
+
+			    		var byteArray = new Uint8ClampedArray(e.target.result);
+			    		console.log('byteArray', byteArray, typeof byteArray)
+			    		var imgData = ctx.createImageData(150, 120);
+			    		imgData.data.set(byteArray);
+
+			   //  		var canvdata = imgData.data;
+
+						// for (var i = 0; i < canvdata.length; i += 4) {
+						//     canvdata[i] = byteArray[i];
+						//     canvdata[i + 1] = byteArray[i + 1];
+						//     canvdata[i + 2] = byteArray[i + 2];
+						//     canvdata[i + 3] = byteArray[i + 3];
+						// }
+						//ctx.putImageData(imgdata, 0, 0);
+
+
+			    		console.log('imgData', imgData)
+
+			    		
+			    		ctx.putImageData(imgData,0,0);
+
+			    		aImg.src = e.target.result;
+			    		// console.log('aImg.file', aImg.file)
+			    	};
+			    })(img);
+			    reader.readAsArrayBuffer(file);
+			}
+		}
+		
+		function handleFiles(files) {
+			const fileList = this.files;
+			console.log('files', files)
+
+			for (var i = 0; i < files.length; i++) {
+			    var file = files[i];
+			    var img = document.createElement("img");
+			    
+			    var reader = new FileReader();
+			    reader.onload = (function(aImg) {
+			    	return function(e) {
+			    		console.log('e', e)
+			    		var canvas = document.getElementById('my_canvas');
+						var ctx = canvas.getContext('2d');
+						console.log(canvas.width, canvas.height)
+
+			    		aImg.src = e.target.result;
+			    		aImg.onload = function(){
+			    			ctx.drawImage(aImg, 0, 0, canvas.width, canvas.height);
+
+				    		var imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+						    axios.post('/prod-api/addResource', {
+						    	type: 'image',
+						    	data: imgData
+							}).then(function (response) {
+							    console.log(response);
+							})
+
+				    		console.log('imgData', imgData, JSON.stringify(imgData))
+				    	};
+			    		
+			    	};
+			    })(img);
+			    reader.readAsDataURL(file);
+			}
+		}
+	</script>
+</body>
+</html>
