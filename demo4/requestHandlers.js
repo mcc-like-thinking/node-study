@@ -65,7 +65,8 @@ function addUser(response, request, postData) {
   userData.push(params)
 
   const resp = {
-    status: 200
+    status: 200,
+    data: userData
   }
   // if (request.headers.token != Token) {
   //   resp.status = 50008

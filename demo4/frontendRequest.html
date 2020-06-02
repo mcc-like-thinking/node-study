@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>frontend request</title>
+</head>
+<body>
+	<p>将此页面放在本地服务中（用nginx搭建）运行，请求此demo中创建的node服务中的数据</p>
+
+	<script type="text/javascript" src="axios.min.js"></script>
+	<script type="text/javascript">
+		// let xhr = new XMLHttpRequest();
+		// xhr.open("post", '/prod-api/addUser', true);
+		// xhr.onload = function (e) {
+		// 	console.log('xhr.onload',this)
+		// }
+		// xhr.send("name=mcc&sex=女&age=20"); // 发送的数据需要解析
+
+	    axios.post('/prod-api/addUser', {
+		    name: 'mcc',
+			sex: '女',
+			age: 20
+		}).then(function (response) {
+		    console.log(response);
+		})
+	</script>
+</body>
+</html>
